@@ -1,0 +1,134 @@
+我们平常用vue开发的时候总觉得vue好像就是专门为了单页面应用而诞生的，其实不是。因为vue在工程化开发的时候很依赖webpack，而webpack是将所有的资源整合到一块，弄成一个单页面。但是vue不止可以做单页面，它还可以做多页面，如果要做多页面的话需要对他的依赖，也就是webpack就是重新配置才可以。本文将详细讲webpack的配置。
+vue的开发有两种，一种是直接的在script标签里引入vue.js文件即可，这样子引入的话个人感觉做小型的多页面会比较舒坦，一旦做大型一点的项目，还是离不开webpack。所以另一种方法也就是基于webpack和vue-cli的工程化开发。下面详解步骤。
+先声明，如果用vue进行工程化开发，首先要有node.js，然后再下一个npm，不过一般新版的node都会有npm所以可以不用弄。指令是在命令行里输入。首先第一步就是生成一个vue项目，用指令：
+vue init webpack test
+博主本人声明的文件名为test，下载好后一路enter，之后便生成了一个vue项目，但是这个vue项目还没有一些相关的依赖，这个时候需要进入到该文件夹里面，输入指令：
+npm install
+如果网速不好，则用cnpm install，效果一样。略等几分钟后整个依赖便已经下完，之后输入指令：
+npm run dev
+则会自动打开一个界面，如果报错不能打开网页的话只有一种原因，那就端口占用，这个时候需要到/config/index.js目录下改端口就行。
+当一个vue项目完成好所有的配置后，接下来就是我们的重点了，首先我们新新建几个html文件，博主我新建了一个one.html和two.html，及其与之对应的vue文件和js文件，文件目录如下：
+
+弄好之后我们进入\build\webpack.base.conf.js目录下，在module.exports的域里，找到entry，在那里配置添加多个入口：
+entry: {
+  app: './src/main.js',
+  one: './src/js/one.js',
+  two: './src/js/two.js'
+},
+
+注意，紫色部分的变量名要起好，因为后面要用到，以防忘记。
+接下来就是对开发环境run dev里进行修改，打开\build\webpack.dev.conf.js文件，在module.exports那里找到plugins，下面写法如下：
+plugins: [
+  new webpack.DefinePlugin({
+    'process.env': config.dev.env
+  }),
+  // https://github.com/glenjamin/webpack-hot-middleware#installation--usage
+  new webpack.HotModuleReplacementPlugin(),
+  new webpack.NoEmitOnErrorsPlugin(),
+  // https://github.com/ampedandwired/html-webpack-plugin
+  new HtmlWebpackPlugin({
+    filename: 'index.html',
+    template: 'index.html',
+    inject: true,
+    chunks: ['app']
+  }),
+  new HtmlWebpackPlugin({
+    filename: 'one.html',
+    template: 'one.html',
+    inject: true,
+    chunks: ['one']
+  }),
+  new HtmlWebpackPlugin({
+    filename: 'two.html',
+    template: 'two.html',
+    inject: true,
+    chunks: ['two']
+  }),
+  new FriendlyErrorsPlugin()
+]
+在chunks那里的app指的是webpack.base.conf.js的entry那里与之对应的变量名。chunks的作用是每次编译、运行时每一个入口都会对应一个entry，如果没写则引入所有页面的资源。
+之后就对run build也就是编译环境进行配置。首先打开\config\index.js文件，在build里加入这个：
+index: path.resolve(__dirname, '../dist/index.html'),
+one: path.resolve(__dirname, '../dist/one.html'),
+two: path.resolve(__dirname, '../dist/two.html'),
+然后打开/build/webpack.prod/conf.js文件，在plugins那里找到HTMLWebpackPlugin，然后添加如下代码：
+new HtmlWebpackPlugin({
+  filename: process.env.NODE_ENV === 'testing'
+    ? 'index.html'
+    : config.build.index,
+  template: 'index.html',
+  inject: true,
+  minify: {
+    removeComments: true,
+    collapseWhitespace: true,
+    removeAttributeQuotes: true
+    // more options:
+    // https://github.com/kangax/html-minifier#options-quick-reference
+  },
+  // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+  chunksSortMode: 'dependency',
+  chunks: ['manifest', 'vendor', 'app']
+}),
+new HtmlWebpackPlugin({
+  filename: config.build.one,
+  template: 'one.html',
+  inject: true,
+  minify: {
+    removeComments: true,
+    collapseWhitespace: true,
+    removeAttributeQuotes: true
+  },
+  chunksSortMode: 'dependency',
+  chunks: ['manifest', 'vendor', 'one']
+}),
+  new HtmlWebpackPlugin({
+      filename: config.build.two,
+      template: 'two.html',
+      inject: true,
+      minify: {
+          removeComments: true,
+          collapseWhitespace: true,
+          removeAttributeQuotes: true
+      },
+      chunksSortMode: 'dependency',
+      chunks: ['manifest', 'vendor', 'two']
+  }),
+其中filename引用的是\config\index.js里的build，每个页面都要配置一个chunks，不然会加载所有页面的资源。
+然后one.js文件可以这样写：
+import Vue from 'vue'
+import one from './one.vue'
+
+Vue.config.productionTip = false
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#one',
+  render: h => h(one)
+})
+one.vue写法如下：
+<template>
+  <div id="one">
+    {{msg}}
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'one',
+  data () {
+    return {
+      msg: 'I am one'
+    }
+  }
+}
+</script>
+two的写法与之类似，所以不写下来了，
+然后App.vue里通过这样写：
+<template>
+  <div id="app">
+    <a href="one.html">one</a><br>
+    <a href="two.html">two</a><br>
+    {{msg}}
+  </div>
+</template>
+这样子当你打开页面的时候，点击上面one的链接就会跳转到one.html，点击two就跳转到two.html。这样子就大功告成
