@@ -1,6 +1,11 @@
 <template>
-  <div v-show="showFlag" class="dealdetails" ref="dealsitems">
+  <transition name="move">
+    <div v-show="showFlag" class="dealdetails" ref="dealsitems">
     <div class="dealscontent">
+      <div class="headtitle">
+        <i v-on:click="hidedetail()" class="returnicon iconfont icon-fanhui"></i>
+        订单详情
+      </div>
       <div class="payResult">未付款</div>
       <div class="addressdiv">
         <i class="addressicon iconfont icon-location"></i>
@@ -11,7 +16,7 @@
       </div>
       <div class="dealtotaldiv border-1px dealstate">
         <span class="dealstext">订单状态</span>
-        <span class="dealsnum payDeal">去支付</span>
+        <span v-on:click="showToast()" class="dealsnum payDeal">去支付</span>
       </div>
       <div class="dealtotaldiv">
         <span class="dealstext">订单信息</span>
@@ -85,10 +90,12 @@
       </div>
     </div>
   </div>
+  </transition>
 </template>
 
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll';
+  import * as api from '../../common/js/android/androidjs';
   export default {
     props: {
       items: {
@@ -111,12 +118,13 @@
             startY: 0
           });
         }
-        this.scroll.refresh();
+        window.hideDealDetails = this.hidedetail;
       });
     },
     methods: {
       show () {
         this.showFlag = true;
+        api.showDetail();
         this.$nextTick(() => {
           if (!this.scroll) {
             this.scroll = new BScroll(this.$refs.dealsitems, {
@@ -127,6 +135,12 @@
           }
           this.scroll.refresh();
         });
+      },
+      showToast () {
+          api.androidToString('sdd');
+      },
+      hidedetail () {
+        this.showFlag = false;
       }
     }
   };
@@ -143,9 +157,20 @@
     bottom: 0px
     background-color: white
     width: 100%
+    padding-top: 14px
     .dealscontent
       width: 100%;
       min-height: 100%
+      .headtitle
+        font-size: 18px
+        font-weight: bold
+        text-align: center
+        line-height: 44px
+        position: relative
+        .returnicon
+          position: absolute
+          padding-left: 14px
+          left: 0px
       .payResult
         line-height: 26px
         background-color: black
@@ -265,4 +290,13 @@
           float: right
       .messagediv
         padding-bottom: 30px
+
+  .move-enter, .move-leave-to
+    opacity: 0.5
+    transition: all 0.5s linear
+    transform: translate3D(100%, 0, 0)
+  .move-enter-to, .move-leave
+    opacity: 1
+    transition: all 0.5s linear
+    transform: translate3D(0, 0, 0)
 </style>

@@ -90,8 +90,10 @@
       font-weight: bold
       text-align: center
       line-height: 44px
+      position: relative
       .returnicon
-        float: left
+        position: absolute
+        left: 0px
     .ulinfos
       overflow: hidden
     .divider_line
