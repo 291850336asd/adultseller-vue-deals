@@ -141,6 +141,7 @@
       },
       hidedetail () {
         this.showFlag = false;
+        api.closeDetails();
       }
     }
   };

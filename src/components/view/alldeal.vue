@@ -2,7 +2,7 @@
   <div class="alldeals">
     <ul id="ulinfos">
       <div class="headtitle">
-        <i class="returnicon iconfont icon-fanhui"></i>
+        <i v-on:click="closeAlldeals()" class="returnicon iconfont icon-fanhui"></i>
         订单列表
       </div>
       <li v-for="(item, index) in items">
@@ -33,6 +33,7 @@
 
 <script type="text/ecmascript-6">
   import dealdetail from './dealdetails.vue';
+  import * as api from '../../common/js/android/androidjs';
   export default {
     props: {
       dealNumber: {
@@ -64,6 +65,9 @@
     methods: {
       selectDeal (index, event) {
         this.$refs.dealinforef.show();
+      },
+      closeAlldeals () {
+        api.closeAllDetails();
       }
     },
     computed: {
