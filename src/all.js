@@ -14,8 +14,3 @@ new Vue({
   components: { AllDeals }
 });
 router.push('/alldeal');
-
-function callBackAndroid (params) {
-    alert('sddsd');
-};
-export { callBackAndroid };

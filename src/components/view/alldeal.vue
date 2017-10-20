@@ -1,7 +1,7 @@
 <template>
   <div class="alldeals">
     <ul id="ulinfos">
-      <div class="headtitle">
+      <div class="headtitle border-1px">
         <i v-on:click="closeAlldeals()" class="returnicon iconfont icon-fanhui"></i>
         订单列表
       </div>
@@ -33,7 +33,8 @@
 
 <script type="text/ecmascript-6">
   import dealdetail from './dealdetails.vue';
-  import * as api from '../../common/js/android/androidjs';
+  import * as androidjs from '../../common/js/android/androidjs';
+  import * as api from '../../api/apihelp';
   export default {
     props: {
       dealNumber: {
@@ -62,12 +63,46 @@
       return ({
       });
     },
+    created: function () {
+      console.log('created all');
+//      window.getAllDetails = this.getAllDetails;
+    },
+    beforeMount: function () {
+      console.log('beforeMount all');
+    },
+    mounted: function () {
+      console.log('mounted all');
+//      this.$nextTick(() => {
+//        var id = window.seller.getStringId();
+//        this.getAllDetails(id, 'nihao');
+//      });
+    },
+    beforeDestory: function () {
+      console.log('beforeDestory all');
+    },
+    destoryed: function () {
+      console.log('destoryed all');
+    },
+    beforeUpdate: function () {
+      console.log('beforeUpdate all');
+    },
+    updated: function () {
+      console.log('updated all');
+    },
     methods: {
+      getAllDetails (type, userId) {
+        api.getAllDeals(type + userId).then(res => {
+          console.log(res);
+          window.seller.showDetail();
+        }).catch(err => {
+          console.log(err);
+        });
+      },
       selectDeal (index, event) {
-        this.$refs.dealinforef.show();
+        this.$refs.dealinforef.show(index);
       },
       closeAlldeals () {
-        api.closeAllDetails();
+        androidjs.closeAllDetails();
       }
     },
     computed: {
